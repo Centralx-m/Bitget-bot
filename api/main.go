@@ -4,65 +4,83 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"sync"
+	"os/signal"
+	"syscall"
 	"time"
+
+	"github.com/yourusername/bitget-grid-bot/config"
 )
 
-var (
-	activeSessions = make(map[string]*TradingSession)
-	sessionMutex   sync.Mutex
-)
+var tradingEngine *TradingEngine
 
-func startBotHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
+func main() {
+	// Load configuration
+	cfg, err := config.LoadConfig("config/config.yaml")
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	var config BotConfig
-	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
-		respondWithError(w, "Invalid request body")
-		return
+	// Initialize trading engine
+	tradingEngine = NewTradingEngine(*cfg)
+	go tradingEngine.Start()
+
+	// Set up HTTP server
+	router := http.NewServeMux()
+	router.HandleFunc("/start", authMiddleware(startHandler))
+	router.HandleFunc("/stop", authMiddleware(stopHandler))
+	router.HandleFunc("/status", authMiddleware(statusHandler))
+	router.HandleFunc("/stats", authMiddleware(statsHandler))
+	router.HandleFunc("/health", healthHandler)
+
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: router,
 	}
 
-	if err := validateConfig(config); err != nil {
-		respondWithError(w, err.Error())
-		return
-	}
-
-	sessionMutex.Lock()
-	defer sessionMutex.Unlock()
-
-	if _, exists := activeSessions[config.Symbol]; exists {
-		respondWithError(w, fmt.Sprintf("Bot already running for %s", config.Symbol))
-		return
-	}
-
-	session := NewTradingSession(config)
-	activeSessions[config.Symbol] = session
-
-	// Start the trading session in a goroutine
-	ctx, cancel := context.WithCancel(context.Background())
+	// Graceful shutdown
 	go func() {
-		session.Run(ctx)
-		cancel()
-		sessionMutex.Lock()
-		delete(activeSessions, config.Symbol)
-		sessionMutex.Unlock()
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, syscall.SIGINT, syscall.SIGTERM)
+		<-sigint
+
+		log.Println("Shutting down server...")
+		tradingEngine.Shutdown()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		
+		if err := server.Shutdown(ctx); err != nil {
+			log.Printf("HTTP server shutdown error: %v", err)
+		}
 	}()
 
-	// Store the cancel function
-	session.CancelFunc = cancel
-
-	respondWithSuccess(w, fmt.Sprintf("Grid bot started for %s", config.Symbol))
+	log.Printf("Server running on %s", server.Addr)
+	if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("HTTP server error: %v", err)
+	}
 }
 
-func validateConfig(config BotConfig) error {
-	// Validate all configuration parameters
-	// Implementation omitted for brevity
-	return nil
+func startHandler(w http.ResponseWriter, r *http.Request) {
+	if tradingEngine.IsRunning() {
+		respondError(w, "Bot is already running", http.StatusBadRequest)
+		return
+	}
+	
+	go tradingEngine.Start()
+	respondJSON(w, map[string]string{"status": "started"})
 }
 
-// Other handlers remain similar but updated to use TradingSession
+func stopHandler(w http.ResponseWriter, r *http.Request) {
+	if !tradingEngine.IsRunning() {
+		respondError(w, "Bot is not running", http.StatusBadRequest)
+		return
+	}
+	
+	tradingEngine.Shutdown()
+	respondJSON(w, map[string]string{"status": "stopped"})
+}
+
+// ... additional handler functions
