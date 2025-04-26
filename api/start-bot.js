@@ -12,50 +12,57 @@ export default async function handler(req, res) {
   const API_PASSPHRASE = process.env.BITGET_API_PASSPHRASE;
 
   try {
-    // Example Bitget endpoint
-    const urlPath = '/api/spot/v1/order'; // <- Example, you will adjust
-    const method = 'POST';
     const baseUrl = 'https://api.bitget.com';
+    const urlPath = '/api/spot/v1/order';
+    const method = 'POST';
 
-    // Build body
-    const body = {
-      symbol: tradingPair,
-      price: upperPrice,
-      size: 1,
-      side: 'buy',
-      orderType: 'limit',
-      force: 'normal'
-    };
-    const bodyString = JSON.stringify(body);
+    // Grid generation
+    const gridSpacing = (upperPrice - lowerPrice) / (gridLevels - 1);
+    const orders = [];
+    
+    for (let i = 0; i < gridLevels; i++) {
+      const price = (lowerPrice + gridSpacing * i).toFixed(2);
+      const size = (investment / gridLevels / price).toFixed(6); // Investment equally divided
 
-    // Generate timestamp
-    const timestamp = Date.now().toString();
+      orders.push({
+        symbol: tradingPair,
+        price,
+        size,
+        side: i % 2 === 0 ? 'buy' : 'sell', // alternate buy/sell
+        orderType: 'limit',
+        force: 'normal'
+      });
+    }
 
-    // Create pre-sign string
-    const preSign = timestamp + method + urlPath + bodyString;
+    // Place all orders one by one
+    const responses = [];
+    for (const order of orders) {
+      const bodyString = JSON.stringify(order);
+      const timestamp = Date.now().toString();
+      const preSign = timestamp + method + urlPath + bodyString;
+      const signature = crypto.createHmac('sha256', API_SECRET)
+        .update(preSign)
+        .digest('base64');
 
-    // Sign the preSign string
-    const signature = crypto.createHmac('sha256', API_SECRET)
-      .update(preSign)
-      .digest('base64');
+      const response = await axios({
+        method,
+        url: baseUrl + urlPath,
+        headers: {
+          'Content-Type': 'application/json',
+          'ACCESS-KEY': API_KEY,
+          'ACCESS-SIGN': signature,
+          'ACCESS-TIMESTAMP': timestamp,
+          'ACCESS-PASSPHRASE': API_PASSPHRASE
+        },
+        data: order
+      });
 
-    // Now make request
-    const response = await axios({
-      method,
-      url: baseUrl + urlPath,
-      headers: {
-        'Content-Type': 'application/json',
-        'ACCESS-KEY': API_KEY,
-        'ACCESS-SIGN': signature,
-        'ACCESS-TIMESTAMP': timestamp,
-        'ACCESS-PASSPHRASE': API_PASSPHRASE
-      },
-      data: body
-    });
+      responses.push(response.data);
+    }
 
-    return res.status(200).json({ success: true, data: response.data });
+    return res.status(200).json({ success: true, orders: responses });
   } catch (error) {
-    console.error('Bot start error:', error.response?.data || error.message);
+    console.error('Grid bot error:', error.response?.data || error.message);
     return res.status(500).json({ success: false, error: error.response?.data || error.message });
   }
 }
