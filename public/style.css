@@ -1,4 +1,16 @@
 /* General Styles */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
 .pnl-tracker {
     position: fixed;
     bottom: 20px;
