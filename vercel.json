@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/start-bot", "destination": "/api/start-bot" }
+  ]
+}
