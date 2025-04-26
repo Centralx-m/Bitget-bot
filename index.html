@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fixed Bitget Grid Bot</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Fixed Bitget Grid Bot</h1>
+
+    <div class="config-panel">
+      <div class="input-group">
+        <label>Trading Pair:</label>
+        <select id="trading-pair">
+          <option value="BTCUSDT">BTC/USDT</option>
+          <option value="ETHUSDT">ETH/USDT</option>
+        </select>
+      </div>
+
+      <div class="price-range">
+        <div class="input-group">
+          <label>Upper Price:</label>
+          <input type="number" id="upper-price" value="50000" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>Lower Price:</label>
+          <input type="number" id="lower-price" value="40000" step="0.01">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Grid Levels:</label>
+        <input type="number" id="grid-levels" value="10" min="3" max="20">
+      </div>
+
+      <div class="input-group">
+        <label>Investment (USDT):</label>
+        <input type="number" id="investment" value="1000" min="10">
+      </div>
+
+      <div class="control-panel">
+        <button id="start-btn" class="btn green">Start Bot</button>
+        <div class="status" id="status">Status: Ready</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('start-btn').onclick = async function() {
+      const config = {
+        tradingPair: document.getElementById('trading-pair').value,
+        upperPrice: document.getElementById('upper-price').value,
+        lowerPrice: document.getElementById('lower-price').value,
+        gridLevels: document.getElementById('grid-levels').value,
+        investment: document.getElementById('investment').value,
+      };
+
+      try {
+        const response = await fetch('/api/start-bot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(config)
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          document.getElementById('status').textContent = 'Status: Bot Started';
+        } else {
+          document.getElementById('status').textContent = 'Status: Failed to Start';
+        }
+      } catch (error) {
+        console.error(error);
+        document.getElementById('status').textContent = 'Status: Error';
+      }
+    };
+  </script>
+</body>
+</html>
