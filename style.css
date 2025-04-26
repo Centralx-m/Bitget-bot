@@ -1,233 +1,151 @@
-:root {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #21262d;
-  --text-primary: #c9d1d9;
-  --text-secondary: #58a6ff;
-  --accent-green: #238636;
-  --accent-red: #da3633;
-  --accent-blue: #58a6ff;
-  --border-color: #30363d;
-  --success-color: #00FF99;
-  --warning-color: #FFA500;
-  --error-color: #FF3333;
-  --spacing-sm: 10px;
-  --spacing-md: 20px;
-  --spacing-lg: 30px;
-  --border-radius: 8px;
-}
-
-/* Base Styles */
+/* Main Container Styles */
 body {
-  margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
+  background-color: #0d1117;
+  color: #c9d1d9;
+  margin: 0;
+  padding: 20px;
 }
 
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: var(--spacing-lg);
+/* Control Panel Styles */
+#controls {
+  background-color: #161b22;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
 }
 
-h1, h2, h3 {
-  color: var(--text-secondary);
-  margin-top: 0;
+#start-btn, #stop-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-/* Panel Styles */
-.panel {
-  background: var(--bg-secondary);
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius);
-  margin-bottom: var(--spacing-lg);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+#start-btn {
+  background-color: #238636;
+  color: white;
 }
 
-/* Form Elements */
+#stop-btn {
+  background-color: #da3633;
+  color: white;
+}
+
+#start-btn:disabled, #stop-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#bot-status {
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.status-stopped {
+  color: #f85149;
+}
+
+.status-running {
+  color: #3fb950;
+}
+
+#live-pnl {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.pnl-positive {
+  color: #3fb950;
+}
+
+.pnl-negative {
+  color: #f85149;
+}
+
+.pnl-neutral {
+  color: #8b949e;
+}
+
+/* Bot Settings Styles */
+#bot-settings {
+  background-color: #161b22;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
 .form-group {
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  background-color: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 5px;
+  color: #c9d1d9;
 }
 
 .form-row {
   display: flex;
-  gap: var(--spacing-md);
+  gap: 20px;
 }
 
 .form-row .form-group {
   flex: 1;
 }
 
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+/* Trade History Styles */
+#trade-history {
+  background-color: #161b22;
+  padding: 20px;
+  border-radius: 8px;
 }
 
-input, select {
-  width: 100%;
-  padding: var(--spacing-sm);
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  border-radius: 5px;
-  transition: border-color 0.3s;
-}
-
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--accent-blue);
-}
-
-/* Buttons */
-.btn {
-  padding: var(--spacing-sm) 25px;
-  margin: 5px;
-  border: none;
-  border-radius: var(--border-radius);
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background: var(--accent-green);
-  color: white;
-}
-
-.btn-danger {
-  background: var(--accent-red);
-  color: white;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn:hover:not(:disabled) {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
-}
-
-/* Status Indicators */
-.status {
-  margin-top: var(--spacing-sm);
-  font-size: 18px;
-}
-
-.status-active {
-  color: var(--success-color);
-}
-
-.status-inactive {
-  color: var(--warning-color);
-}
-
-.pnl-positive {
-  color: var(--success-color);
-}
-
-.pnl-negative {
-  color: var(--error-color);
-}
-
-.pnl-neutral {
-  color: var(--text-primary);
-}
-
-/* Visualization */
-.chart-container {
-  position: relative;
-  height: 300px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.grid-lines {
-  background-image: repeating-linear-gradient(
-    to top,
-    var(--border-color),
-    var(--border-color) 1px,
-    transparent 1px,
-    transparent 30px
-  );
-}
-
-/* Trade History */
-.trade-history table {
+#trade-history table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.trade-history th, 
-.trade-history td {
-  padding: var(--spacing-sm);
-  text-align: center;
-  border-bottom: 1px solid var(--border-color);
+#trade-history th, #trade-history td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #30363d;
 }
 
-.trade-history th {
-  background: var(--bg-tertiary);
+#trade-history th {
+  background-color: #21262d;
   font-weight: bold;
 }
 
-.trade-history tr:hover {
-  background: var(--bg-tertiary);
+#trade-history tr:hover {
+  background-color: #21262d;
 }
 
-/* Notification & PnL Tracker */
-.notification {
-  position: fixed;
-  top: var(--spacing-md);
-  right: var(--spacing-md);
-  background: var(--bg-tertiary);
-  color: white;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius);
-  z-index: 9999;
-  animation: fadeInOut 3s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.pnl-tracker {
-  position: fixed;
-  bottom: var(--spacing-md);
-  right: var(--spacing-md);
-  background: var(--bg-tertiary);
-  padding: var(--spacing-sm) 15px;
-  border-radius: var(--border-radius);
-  font-weight: bold;
-  font-size: 1.2em;
-  z-index: 999;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Animations */
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(-20px); }
-  10% { opacity: 1; transform: translateY(0); }
-  90% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-20px); }
-}
-
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 15px;
   }
   
-  .container {
-    padding: var(--spacing-md);
-  }
-  
-  .chart-container {
-    height: 200px;
+  #controls {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
