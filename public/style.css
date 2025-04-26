@@ -1,4 +1,70 @@
 /* General Styles */
+/* Controls Section */
+#controls {
+  margin: 20px;
+}
+
+#start-btn, #stop-btn {
+  padding: 10px 20px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+#bot-status {
+  font-weight: bold;
+}
+
+#live-pnl {
+  font-weight: bold;
+  color: #00FF99;
+}
+
+/* Bot Settings */
+#bot-settings {
+  margin: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+/* Trade History Table */
+#trade-history table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+#trade-history th, #trade-history td {
+  padding: 12px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+/* Notification Popup */
+.notification {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: #333;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 5px;
+  z-index: 9999;
+  animation: fadeInOut 3s ease;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-20px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
 #live-pnl {
   font-weight: bold;
   color: #00FF99;
