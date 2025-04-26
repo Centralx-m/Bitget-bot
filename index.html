@@ -3,7 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <title>Fixed Bitget Grid Bot</title>
-    <link rel="stylesheet" href="/style.css">
+    <style>
+/* General Styles */
+.pnl-tracker {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #222;
+    color: #0f0;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.2em;
+    z-index: 999;
+}
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+/* Header */
+h1 {
+    text-align: center;
+    color: #58a6ff;
+}
+
+/* Config Panel */
+.config-panel {
+    background: #161b22;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    padding: 10px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    border-radius: 5px;
+}
+
+/* Price Range */
+.price-range {
+    display: flex;
+    gap: 20px;
+}
+
+.price-range .input-group {
+    flex: 1;
+}
+
+/* Control Panel */
+.control-panel {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.btn {
+    padding: 10px 25px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn.green {
+    background: #238636;
+    color: white;
+}
+
+.btn.red {
+    background: #da3633;
+    color: white;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.status {
+    margin-top: 15px;
+    font-size: 18px;
+}
+
+/* Visualization */
+.visualization {
+    background: #161b22;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.chart, .grid-lines {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.grid-lines {
+    background-image: repeating-linear-gradient(
+        to top,
+        #30363d,
+        #30363d 1px,
+        transparent 1px,
+        transparent 30px
+    );
+}
+
+.price-display {
+    margin-top: 15px;
+    font-size: 18px;
+    text-align: center;
+}
+
+/* Trade History */
+.trade-history {
+    background: #161b22;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.trade-history h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #58a6ff;
+    text-align: center;
+}
+
+#trade-log {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#trade-log th, #trade-log td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #30363d;
+}
+
+#trade-log th {
+    background: #21262d;
+    font-weight: bold;
+}
+
+#trade-log tbody tr:hover {
+    background: #21262d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .price-range {
+        flex-direction: column;
+    }
+    }
+
+</style>
 </head>
 <body>
     <div class="container">
