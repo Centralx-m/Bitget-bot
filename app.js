@@ -1,142 +1,163 @@
-// Global Variables
-let isBotRunning = false;
+// app.js
+
+let botRunning = false;
+let trades = [];
+let basePrice = null;
 let simulationMode = true;
-let intervalId;
-let grids = [];
-let investmentPerGrid = 0;
+let apiKey = '';
+let apiSecret = '';
+let passphrase = '';
+let pair = '';
+let investment = 0;
+let totalProfit = 0;
 
-// Start Bot
-document.getElementById('start-btn').addEventListener('click', () => {
-    const apiKey = document.getElementById('api-key').value.trim();
-    const apiSecret = document.getElementById('api-secret').value.trim();
-    const passphrase = document.getElementById('api-passphrase').value.trim();
-    const tradingPair = document.getElementById('trading-pair').value;
-    const upperPrice = parseFloat(document.getElementById('upper-price').value);
-    const lowerPrice = parseFloat(document.getElementById('lower-price').value);
-    const gridLevels = parseInt(document.getElementById('grid-levels').value);
-    const investment = parseFloat(document.getElementById('investment').value);
+const statusEl = document.getElementById('status');
+const startBtn = document.getElementById('start-btn');
+const stopBtn = document.getElementById('stop-btn');
+const priceDisplay = document.getElementById('current-price');
+const tradeLog = document.getElementById('trade-log').querySelector('tbody');
+const pnlDisplay = document.createElement('div');
 
-    if (isNaN(upperPrice) || isNaN(lowerPrice) || upperPrice <= lowerPrice || gridLevels < 2) {
-        alert('Please check your grid settings.');
-        return;
-    }
+pnlDisplay.className = 'pnl-tracker';
+document.body.appendChild(pnlDisplay);
 
-    simulationMode = (apiKey === '' || apiSecret === '' || passphrase === '');
+startBtn.addEventListener('click', startBot);
+stopBtn.addEventListener('click', stopBot);
 
-    grids = [];
-    const priceStep = (upperPrice - lowerPrice) / gridLevels;
-    for (let i = 0; i <= gridLevels; i++) {
-        grids.push(lowerPrice + i * priceStep);
-    }
+async function startBot() {
+    apiKey = document.getElementById('api-key').value.trim();
+    apiSecret = document.getElementById('api-secret').value.trim();
+    passphrase = document.getElementById('api-passphrase').value.trim();
+    simulationMode = !apiKey || !apiSecret || !passphrase;
 
-    investmentPerGrid = investment / gridLevels;
+    pair = document.getElementById('trading-pair').value;
+    investment = parseFloat(document.getElementById('investment').value);
+    basePrice = await fetchCurrentPrice();
 
-    drawGrids();
-    updateStatus('Running (' + (simulationMode ? 'Simulation' : 'Live') + ')');
-    isBotRunning = true;
+    statusEl.textContent = `Status: Bot Running (${simulationMode ? 'Simulation' : 'Live'})`;
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    botRunning = true;
 
-    document.getElementById('start-btn').disabled = true;
-    document.getElementById('stop-btn').disabled = false;
+    botLoop();
+    livePnlLoop();
+}
 
-    intervalId = setInterval(() => fetchPriceAndTrade(tradingPair, apiKey, apiSecret, passphrase), 3000);
-});
+function stopBot() {
+    statusEl.textContent = 'Status: Bot Stopped';
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    botRunning = false;
+}
 
-// Stop Bot
-document.getElementById('stop-btn').addEventListener('click', () => {
-    clearInterval(intervalId);
-    updateStatus('Stopped');
-    isBotRunning = false;
-    document.getElementById('start-btn').disabled = false;
-    document.getElementById('stop-btn').disabled = true;
-});
+async function botLoop() {
+    while (botRunning) {
+        const price = await fetchCurrentPrice();
+        priceDisplay.textContent = `Current Price: ${price}`;
 
-// Fetch price and simulate or live trade
-async function fetchPriceAndTrade(pair, apiKey, apiSecret, passphrase) {
-    try {
-        const res = await fetch(`https://api.bitget.com/api/v2/spot/market/ticker?symbol=${pair}`);
-        const data = await res.json();
-        const currentPrice = parseFloat(data.data.close);
+        const action = Math.random() < 0.5 ? 'buy' : 'sell'; // Random action for now
 
-        document.getElementById('current-price').innerText = `Current Price: ${currentPrice}`;
+        const amount = (investment / 10 / price).toFixed(6); // Example: 1/10 of investment
 
-        if (!isBotRunning) return;
-
-        // Check grid levels
-        for (let i = 0; i < grids.length; i++) {
-            const gridPrice = grids[i];
-
-            if (Math.abs(currentPrice - gridPrice) < 0.5) { // Small threshold
-                const tradeType = (Math.random() > 0.5) ? 'BUY' : 'SELL'; // Random for demo
-                const amount = (investmentPerGrid / currentPrice).toFixed(6);
-
-                if (simulationMode) {
-                    addTradeLog('Sim', tradeType, gridPrice, amount, (Math.random() * 5).toFixed(2));
-                } else {
-                    await placeOrder(pair, tradeType, amount, apiKey, apiSecret, passphrase);
-                }
-            }
+        if (simulationMode) {
+            simulateTrade(action, price, amount);
+        } else {
+            await liveTrade(action, price, amount);
         }
 
-    } catch (error) {
-        console.error(error);
-        updateStatus('Error fetching price.');
+        await delay(8000); // Wait 8 seconds between trades
     }
 }
 
-// Place real order (via Vercel API function)
-async function placeOrder(pair, side, amount, apiKey, apiSecret, passphrase) {
+async function liveTrade(side, price, amount) {
     try {
-        const res = await fetch('/api/bitget', {
+        const response = await fetch('/api/bitget', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ pair, side, amount, apiKey, apiSecret, passphrase })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                pair,
+                side,
+                amount,
+                apiKey,
+                apiSecret,
+                passphrase
+            })
         });
 
-        const data = await res.json();
+        const data = await response.json();
         if (data.success) {
-            addTradeLog('Live', side, data.price, amount, data.profit || 0);
+            logTrade(side, price, amount, 0);
         } else {
-            console.error('Order failed:', data);
+            console.error('Trade Error:', data.error);
         }
-    } catch (error) {
-        console.error('Error placing order:', error);
+    } catch (err) {
+        console.error('Fetch Error:', err);
     }
 }
 
-// Draw Grid Lines
-function drawGrids() {
-    const gridLinesContainer = document.getElementById('grid-lines');
-    gridLinesContainer.innerHTML = '';
-
-    for (let i = 0; i < grids.length; i++) {
-        const line = document.createElement('div');
-        line.style.position = 'absolute';
-        line.style.top = `${100 - (i / (grids.length - 1)) * 100}%`;
-        line.style.left = 0;
-        line.style.width = '100%';
-        line.style.height = '1px';
-        line.style.backgroundColor = '#58a6ff';
-        gridLinesContainer.appendChild(line);
-    }
+function simulateTrade(side, price, amount) {
+    logTrade(side, price, amount, 0);
 }
 
-// Update Status
-function updateStatus(text) {
-    document.getElementById('status').innerText = 'Status: ' + text;
-}
-
-// Add to Trade History
-function addTradeLog(mode, type, price, amount, profit) {
-    const table = document.getElementById('trade-log').querySelector('tbody');
+function logTrade(type, price, amount, profit) {
+    const now = new Date().toLocaleTimeString();
     const row = document.createElement('tr');
     row.innerHTML = `
-        <td>${new Date().toLocaleTimeString()}</td>
-        <td>${mode} ${type}</td>
-        <td>${parseFloat(price).toFixed(2)}</td>
-        <td>${parseFloat(amount).toFixed(4)}</td>
-        <td>${parseFloat(profit).toFixed(2)}</td>
+        <td>${now}</td>
+        <td>${type}</td>
+        <td>${price}</td>
+        <td>${amount}</td>
+        <td>${profit.toFixed(4)}</td>
     `;
-    table.prepend(row);
+    tradeLog.appendChild(row);
+
+    trades.push({ type, price: parseFloat(price), amount: parseFloat(amount) });
+
+    // Update total profit for now (static) - real profit will be calculated below
+}
+
+async function fetchCurrentPrice() {
+    const symbol = pair.toLowerCase();
+    try {
+        const res = await fetch(`https://api.bitget.com/api/v2/spot/market/ticker?symbol=${symbol}`);
+        const data = await res.json();
+        return parseFloat(data.data.close);
+    } catch (err) {
+        console.error('Price fetch error', err);
+        return basePrice || 0;
+    }
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function livePnlLoop() {
+    while (botRunning) {
+        if (trades.length > 0) {
+            const latestPrice = await fetchCurrentPrice();
+            const pnl = calculatePnL(latestPrice);
+
+            pnlDisplay.textContent = `Live PnL: ${pnl.toFixed(2)}%`;
+        }
+        await delay(5000); // Update PnL every 5 seconds
+    }
+}
+
+function calculatePnL(currentPrice) {
+    let initialInvestment = 0;
+    let currentValue = 0;
+
+    trades.forEach(trade => {
+        if (trade.type === 'buy') {
+            initialInvestment += trade.amount * trade.price;
+            currentValue += trade.amount * currentPrice;
+        } else if (trade.type === 'sell') {
+            initialInvestment -= trade.amount * trade.price;
+            currentValue -= trade.amount * currentPrice;
+        }
+    });
+
+    if (initialInvestment === 0) return 0;
+    return ((currentValue - initialInvestment) / Math.abs(initialInvestment)) * 100;
 }
