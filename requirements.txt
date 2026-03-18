@@ -1,0 +1,15 @@
+# requirements.txt - Python dependencies
+ccxt>=4.1.22
+web3>=6.15.1
+redis>=5.0.1
+pandas>=2.1.0
+numpy>=1.24.3
+fastapi>=0.104.0
+uvicorn>=0.24.0
+python-dotenv>=1.0.0
+firebase-admin>=6.3.0
+apscheduler>=3.10.4
+python-telegram-bot>=20.6
+discord-webhook>=1.2.0
+pytest>=7.4.0
+pytest-asyncio>=0.21.1
