@@ -1,0 +1,32 @@
+# docker/docker-compose.yml - Docker Compose configuration
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: xtaagc-bot
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    volumes:
+      - ../logs:/app/logs
+    networks:
+      - xtaagc-network
+
+  redis:
+    image: redis:alpine
+    container_name: xtaagc-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - xtaagc-network
+
+networks:
+  xtaagc-network:
+    driver: bridge
+
+volumes:
+  redis-data:
