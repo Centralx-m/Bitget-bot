@@ -1,14 +1,33 @@
 {
+  "vercel.json - Vercel configuration",
   "functions": {
     "api/*.py": {
       "maxDuration": 300,
-      "runtime": "python3.9"
+      "runtime": "python3.9",
+      "memory": 1024
     }
   },
   "crons": [
     {
       "path": "/api/scan",
       "schedule": "*/1 * * * *"
+    },
+    {
+      "path": "/api/execute",
+      "schedule": "*/1 * * * *"
+    }
+  ],
+  "env": {
+    "BITGET_API_KEY": "@bitget-api-key",
+    "BITGET_API_SECRET": "@bitget-api-secret",
+    "BITGET_API_PASSPHRASE": "@bitget-api-passphrase",
+    "FIREBASE_PROJECT_ID": "@firebase-project-id",
+    "FIREBASE_API_KEY": "@firebase-api-key"
+  },
+  "builds": [
+    {
+      "src": "api/**/*.py",
+      "use": "@vercel/python"
     }
   ]
 }
