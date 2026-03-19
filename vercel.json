@@ -1,50 +1,14 @@
 {
   "functions": {
-    "api/**/*.ts": {
+    "api/*.py": {
       "maxDuration": 300,
-      "runtime": "nodejs20.x"
+      "runtime": "python3.9"
     }
   },
   "crons": [
     {
-      "path": "/api/v1/cron/scan",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/v1/cron/execute",
+      "path": "/api/scan",
       "schedule": "*/1 * * * *"
-    },
-    {
-      "path": "/api/v1/cron/cleanup",
-      "schedule": "0 */6 * * *"
-    },
-    {
-      "path": "/api/v1/cron/report",
-      "schedule": "0 0 * * *"
     }
-  ],
-  "builds": [
-    {
-      "src": "api/**/*.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/health", "destination": "/api/health" },
-    { "source": "/(.*)", "destination": "/frontend/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,Authorization" }
-      ]
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
